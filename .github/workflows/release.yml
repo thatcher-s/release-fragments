@@ -1,0 +1,67 @@
+name: Release
+
+# Reusable release workflow: builds the pending fragments into a release, commits,
+# tags and publishes it. Assumes a disposable CI checkout with no local edits to lose.
+
+on:
+  workflow_call:
+    inputs:
+      tool-spec:
+        description: >-
+          pip/uv-installable spec for release-fragments (e.g. a git+https URL pinned to
+          a tag). Empty runs the tool from this checkout instead.
+        type: string
+        default: ""
+    secrets:
+      RELEASE_TOKEN:
+        description: >-
+          GitHub App (or other) token with contents:write, used to push past branch
+          protection that GITHUB_TOKEN cannot satisfy. Falls back to github.token.
+        required: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # A reusable workflow cannot grant itself more than its caller allows, so top-level
+    # `permissions:` is intentionally left unset here. The caller must grant
+    # `permissions: contents: write` on the job that calls this workflow.
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+
+      - name: Configure push authentication
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+        run: |
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+      - name: Run release
+        env:
+          TOOL_SPEC: ${{ inputs['tool-spec'] }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TOOL_SPEC" ]; then
+            uv sync
+            uv run release publish
+          else
+            uvx --from "$TOOL_SPEC" release publish
+          fi

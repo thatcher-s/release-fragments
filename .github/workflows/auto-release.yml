@@ -1,0 +1,19 @@
+name: Auto release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "changelog/next/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    secrets: inherit

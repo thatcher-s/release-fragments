@@ -1,0 +1,87 @@
+name: Fragment gate
+
+# Reusable PR gate: validates the fragment and release-note policy for a pull request.
+# Always runs and always reports a status — branch protection can block on a job that
+# never ran, so every check below is a conditional *step*, not a conditional job.
+
+on:
+  workflow_call:
+    inputs:
+      tool-spec:
+        description: >-
+          pip/uv-installable spec for release-fragments (e.g. a git+https URL pinned to
+          a tag). Empty runs the tool from this checkout instead.
+        type: string
+        default: ""
+
+jobs:
+  gate:
+    name: Fragment gate
+    runs-on: ubuntu-latest
+    env:
+      # Both the PR author and the actor that triggered the run must be Dependabot;
+      # either one alone is not enough to exempt the run from validation.
+      IS_DEPENDABOT: >-
+        ${{ github.event.pull_request.user.login == 'dependabot[bot]' &&
+            github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Dependabot exemption
+        if: env.IS_DEPENDABOT == 'true'
+        run: |
+          echo "Dependabot PR: skipping fragment validation."
+
+      - name: Checkout
+        if: env.IS_DEPENDABOT != 'true'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up uv
+        if: env.IS_DEPENDABOT != 'true'
+        uses: astral-sh/setup-uv@v7
+
+      - name: Skip-marker guard
+        if: env.IS_DEPENDABOT != 'true'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          commit_messages="$(git log --format=%B "$BASE_SHA..$HEAD_SHA")"
+          combined="$PR_TITLE
+          $PR_BODY
+          $commit_messages"
+          markers=(
+            "[skip ci]"
+            "[ci skip]"
+            "[no ci]"
+            "[skip actions]"
+            "[actions skip]"
+            "skip-checks: true"
+            "skip-checks:true"
+          )
+          for marker in "${markers[@]}"; do
+            # A here-string, not a pipe: under `pipefail`, grep -q's early exit on a
+            # match can SIGPIPE the writer and flip the result to failure.
+            if grep -qiF -- "$marker" <<<"$combined"; then
+              echo "::error::skip marker found in the PR title, body, or a commit message: $marker"
+              exit 1
+            fi
+          done
+
+      - name: Fragment check
+        if: env.IS_DEPENDABOT != 'true'
+        env:
+          TOOL_SPEC: ${{ inputs['tool-spec'] }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TOOL_SPEC" ]; then
+            uv sync
+            uv run release check "$BASE_SHA" "$HEAD_SHA"
+          else
+            uvx --from "$TOOL_SPEC" release check "$BASE_SHA" "$HEAD_SHA"
+          fi

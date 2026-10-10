@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "release-fragments"
+version = "0.0.0"
+description = "News-fragment changelog and semver release automation for Python repositories"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+release = "release_fragments.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/release_fragments"]
+
+[tool.release-fragments]
+# Dogfooding: this repo releases itself with its own tool, using the defaults.
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+files = ["src/release_fragments"]
+python_version = "3.11"
+strict = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18",
+    "pytest>=8.4",
+    "ruff>=0.14",
+]
