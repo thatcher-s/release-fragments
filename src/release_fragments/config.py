@@ -37,6 +37,8 @@ class Config:
     base_ref: str = "origin/main"
     remote: str = "origin"
     branch: str = "main"
+    # Below 1.0, a major bump becomes minor (the Cargo/npm-caret convention for 0.y.z).
+    major_version_zero: bool = False
 
     def path(self, relative: str) -> Path:
         """Return the absolute filesystem path for a repo-relative setting."""
@@ -45,6 +47,7 @@ class Config:
 
 _STR_KEYS = {"fragment_dir", "changelog", "manifest", "lockfile", "base_ref", "remote", "branch"}
 _LIST_KEYS = {"lock_command", "shipping_paths"}
+_BOOL_KEYS = {"major_version_zero"}
 
 
 def load_config(root: Path | None = None) -> Config:
@@ -77,4 +80,8 @@ def load_config(root: Path | None = None) -> Config:
                     f"[tool.release-fragments] {key} must be a list of strings"
                 )
             values[key] = tuple(value)
+        elif key in _BOOL_KEYS:
+            if not isinstance(value, bool):
+                raise ReleaseFragmentsError(f"[tool.release-fragments] {key} must be a boolean")
+            values[key] = value
     return Config(root=root, **values)
