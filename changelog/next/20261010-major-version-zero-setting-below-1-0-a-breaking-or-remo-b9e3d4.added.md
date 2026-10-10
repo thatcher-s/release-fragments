@@ -1,1 +1,0 @@
-- `major-version-zero` setting: below 1.0, a `breaking` or `removed` fragment bumps the minor version instead of releasing 1.0.0.
