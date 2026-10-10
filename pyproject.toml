@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "release-fragments"
-version = "0.0.0"
+version = "0.1.0"
 description = "News-fragment changelog and semver release automation for Python repositories"
 readme = "README.md"
 requires-python = ">=3.11"
