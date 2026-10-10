@@ -34,6 +34,7 @@ is optional, and unknown keys are an error.
 | `base-ref` | `origin/main` | Default base for `release check` |
 | `remote` | `origin` | Remote that `release publish` pushes to |
 | `branch` | `main` | Branch that `release publish` pushes to |
+| `major-version-zero` | `false` | Below 1.0, a major bump becomes a minor bump (see §5) |
 
 ## 3. Fragment contract (`fragments.py`)
 
@@ -174,7 +175,12 @@ Prints `extract_notes(CHANGELOG text, version)`.
 - **Version format:** exactly `X.Y.Z` in decimal, without leading zeros. Prerelease and
   build suffixes are rejected.
   - Patch: `X.Y.(Z+1)`. Minor: `X.(Y+1).0`. Major: `(X+1).0.0`.
-  - No special case below 1.0.
+  - **Below 1.0:** by default, no special case: a `breaking` or `removed` fragment takes
+    0.4.2 to 1.0.0. With `major-version-zero = true`, a major bump becomes a minor bump
+    while the major version is 0 (0.4.2 → 0.5.0), following SemVer §4 and the Cargo and npm
+    caret convention that the minor number signals breaking changes in 0.y.z. Patch and
+    minor bumps are unchanged. To release 1.0.0, turn the setting off; the next major
+    bump then lands on 1.0.0.
 - **Manifest:** exactly one line matching `^version\s*=\s*"([^"]*)"\s*$` (multiline mode,
   unindented, double-quoted). If there are zero or several, raise. Replace only the quoted
   value and keep every other byte.

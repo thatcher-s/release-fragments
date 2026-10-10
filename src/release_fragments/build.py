@@ -13,9 +13,9 @@ from pathlib import Path
 
 from release_fragments.config import Config
 from release_fragments.errors import ReleaseFragmentsError
-from release_fragments.fragments import load_all
+from release_fragments.fragments import Bump, load_all
 from release_fragments.render import insert_section, render_section
-from release_fragments.version import bump_version, read_version, replace_version
+from release_fragments.version import bump_version, parse_version, read_version, replace_version
 
 _STDERR_TAIL = 500
 
@@ -44,7 +44,10 @@ def build(
     manifest_text = _read_text(manifest_path)
     previous = read_version(manifest_text)
     fragments = [fragment for _, fragment in loaded]
-    version = bump_version(previous, max(fragment.bump for fragment in fragments))
+    bump = max(fragment.bump for fragment in fragments)
+    if config.major_version_zero and bump is Bump.MAJOR and parse_version(previous)[0] == 0:
+        bump = Bump.MINOR
+    version = bump_version(previous, bump)
     section = render_section(version, today or datetime.now(UTC).date(), fragments)
     result = BuildResult(
         version=version,

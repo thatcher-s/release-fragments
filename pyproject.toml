@@ -17,7 +17,8 @@ release = "release_fragments.cli:main"
 packages = ["src/release_fragments"]
 
 [tool.release-fragments]
-# Dogfooding: this repo releases itself with its own tool, using the defaults.
+# Dogfooding: this repo releases itself with its own tool.
+major-version-zero = true
 
 [tool.ruff]
 line-length = 100

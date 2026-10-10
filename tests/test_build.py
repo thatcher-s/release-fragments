@@ -53,6 +53,29 @@ def test_each_category_bump(project: Config, category: str, expected: str) -> No
     assert result is not None and result.version == expected
 
 
+@pytest.mark.parametrize(
+    ("enabled", "current", "category", "expected"),
+    [
+        (True, "0.4.2", "breaking", "0.5.0"),
+        (True, "0.4.2", "removed", "0.5.0"),
+        (True, "0.4.2", "added", "0.5.0"),
+        (True, "0.4.2", "fixed", "0.4.3"),
+        (True, "1.2.3", "breaking", "2.0.0"),
+        (False, "0.4.2", "breaking", "1.0.0"),
+    ],
+)
+def test_major_version_zero(
+    project: Config, enabled: bool, current: str, category: str, expected: str
+) -> None:
+    manifest = project.path(project.manifest)
+    manifest.write_text(
+        manifest.read_text(encoding="utf-8").replace('"1.2.3"', f'"{current}"'), encoding="utf-8"
+    )
+    _fragment(project, "x", category)
+    result = build(replace(project, major_version_zero=enabled), dry_run=True)
+    assert result is not None and result.version == expected
+
+
 def test_mixed_categories_pick_largest(project: Config) -> None:
     _fragment(project, "a", "fixed")
     _fragment(project, "b", "deprecated")
