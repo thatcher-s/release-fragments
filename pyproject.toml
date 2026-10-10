@@ -7,6 +7,8 @@ name = "release-fragments"
 version = "0.2.0"
 description = "News-fragment changelog and semver release automation for Python repositories"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = []
 

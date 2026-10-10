@@ -122,13 +122,6 @@ reference and defaults.
 
 ## GitHub requirements
 
-- **Private repo:** another repo can call these reusable workflows only after this repo
-  enables *Settings → Actions → General → Access* for the calling repo (or
-  organization). Installing the tool itself via `tool-spec` from a private repo needs a
-  credential too: the workflows here supply none, so a plain
-  `git+https://github.com/...` spec fails until the caller arranges its own install
-  token (for example, an `extraheader` or a PAT-based URL) — this is a known limit, not
-  something these workflows configure for you.
 - **Branch protection:** if the default branch requires pull requests, the built-in
   `GITHUB_TOKEN` cannot push the release commit past that protection. Supply a GitHub
   App (or other) token with `contents: write` as the `RELEASE_TOKEN` secret, or add a
@@ -149,3 +142,7 @@ Every behavior-changing PR adds a fragment:
 ```console
 $ just fragment <category> "<description>"
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).

@@ -230,7 +230,5 @@ Prints `extract_notes(CHANGELOG text, version)`.
   match the changelog.
 - **Branch protection:** with required PRs on the branch, `GITHUB_TOKEN` can't push the
   release commit. Provide a GitHub App token as `RELEASE_TOKEN` or add a ruleset bypass.
-- **Private repo:** other repos can call its reusable workflows only after enabling
-  *Settings → Actions → Access*, and installing the tool from it needs a token.
 - **No submodule sync:** the original's submodule pointer sync was workspace-specific and
   is not included.
