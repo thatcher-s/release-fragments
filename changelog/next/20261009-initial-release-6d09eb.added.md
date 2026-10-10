@@ -1,0 +1,1 @@
+- Initial release: the `release` CLI (`add`, `check`, `build`, `publish`, `notes`) for fragment-based changelogs and semver releases, reusable PR-gate and release workflows, and a pre-push hook.

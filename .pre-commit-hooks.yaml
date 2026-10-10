@@ -1,0 +1,10 @@
+- id: release-check
+  name: release check
+  description: >-
+    Validate a push's fragment and release-note policy before it leaves the
+    developer's machine.
+  entry: release check
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-push]
